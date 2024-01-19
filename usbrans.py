@@ -55,8 +55,8 @@ generate_key(key_save_location)
 with open(key_save_location, 'rb') as key_file:
     encryption_key = key_file.read()
 
-# Encriptar los archivos en el directorio seleccionado
+# Encriptar todos los archivos en el directorio seleccionado y sus subdirectorios
 encrypt_files_in_directory(target_directory, encryption_key)
 
 # Mostrar mensaje de éxito
-messagebox.showinfo("Encriptado", "Archivos encriptados exitosamente.")
+messagebox.showinfo("Encriptado", "Contenido de la carpeta encriptado exitosamente.")
