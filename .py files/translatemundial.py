@@ -8,10 +8,10 @@ from deep_translator import GoogleTranslator
 from pynput import mouse
 
 
-# Configura la ruta de tesseract
-pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'  # Cambia la ruta según sea necesario
+# ruta de tesseract, hay que descargarlo e instalarlo, *RUTA GENERICA*
+pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 
-# Datos de idiomas con sus códigos para Tesseract y Google Translator
+# Códigos de Tesseract y Google Translator
 language_data = [
     ('Afrikaans', 'af', 'afr'),
     ('Albanian', 'sq', 'sq'),
@@ -109,7 +109,7 @@ language_data = [
     ('Yoruba', 'yo', 'yor'),
     ('Zulu', 'zu', 'zul')
 ]
-
+# OJO!! Solo se puede de arriba a la izquierda, hacia abajo derecha 
 class ScreenCapture:
     def __init__(self):
         self.start_pos = None
@@ -117,14 +117,11 @@ class ScreenCapture:
 
     def on_click(self, x, y, button, pressed):
         if pressed:
-            # Registro de la posición inicial
             self.start_pos = (x, y)
             print(f"Inicio en: {self.start_pos}")
         else:
-            # Registro de la posición final
             self.end_pos = (x, y)
             print(f"Fin en: {self.end_pos}")
-            # Detener el listener
             return False
 
     def capture_region(self):
@@ -135,7 +132,6 @@ class ScreenCapture:
         if self.start_pos and self.end_pos:
             x1, y1 = self.start_pos
             x2, y2 = self.end_pos
-            # Asegúrate de que x1 < x2 y y1 < y2
             x1, x2 = min(x1, x2), max(x1, x2)
             y1, y2 = min(y1, y2), max(y1, y2)
             width = x2 - x1
@@ -147,23 +143,19 @@ class ScreenCapture:
 
 def ocr_and_translate(region, lang_index):
     if region:
-        # Capturar la pantalla en la región especificada
         screenshot = pyautogui.screenshot(region=region)
-        # Guardar la imagen temporalmente
+        # Imagen temp, ¿cambiar de ruta?
         temp_img_path = "temp.png"
         screenshot.save(temp_img_path)
-
-        # Realizar OCR en la imagen capturada
         tesseract_lang_code = language_data[lang_index][2]
         ocr_result = pytesseract.image_to_string(Image.open(temp_img_path), lang=tesseract_lang_code)
         print(f"Texto reconocido:\n{ocr_result}")
-
-        # Traducir utilizando Google Translator
-        google_source_lang_code = language_data[lang_index][0].lower()  # Código de idioma en Google Translator
-        target_lang = 'es'  # Lenguaje de destino en Google Translator
+        
+        # Traducir
+        google_source_lang_code = language_data[lang_index][0].lower() 
+        target_lang = 'es' 
         translation = GoogleTranslator(source=google_source_lang_code, target=target_lang).translate(ocr_result)
         print(f"Traducción a {target_lang}:\n{translation}")
-
         # Eliminar la imagen temporal
         os.remove(temp_img_path)
     else:
@@ -186,24 +178,20 @@ def on_language_selected(event):
     else:
         print("No se encontró el idioma seleccionado en los datos.")
 
-# Crear la ventana principal
 root = tk.Tk()
 root.title("OCR y Traducción")
 
-# Frame para contener los widgets
 frame = ttk.Frame(root, padding=20)
 frame.grid(row=0, column=0, sticky="nsew")
 
-# Combobox para seleccionar el idioma
 language_label = ttk.Label(frame, text="Selecciona el idioma:")
 language_label.grid(row=0, column=0, padx=10, pady=10)
 
 language_names = [lang[0] for lang in language_data]
 language_combobox = ttk.Combobox(frame, values=language_names, state="readonly", width=50)
 language_combobox.grid(row=0, column=1, padx=10, pady=10)
-language_combobox.current(0)  # Establecer la selección inicial
+language_combobox.current(0)
 
-# Botón para comenzar la captura
 start_button = ttk.Button(frame, text="Comenzar Captura", command=lambda: on_language_selected(None))
 start_button.grid(row=1, column=0, columnspan=2, pady=10)
 
