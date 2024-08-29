@@ -78,15 +78,8 @@ def run_commands(progress_bar, status_label, root):
         time.sleep(1)
         status_label.config(text="Disk Repaired")
 
-        # Functions Wupdate
+        # Progress for Updates
         update_progress(90)
-        verificar_modulo_pswindowsupdate()
-        buscar_actualizaciones()
-        instalar_actualizaciones()
-
-        status_label.config(text="Windows Updates Installed")        
-        # Lenovo Vantage function
-        update_progress(97)
         update_and_reboot(root)
     
     except Exception as e:
@@ -97,26 +90,47 @@ def update_and_reboot(root):
     proceed = messagebox.askyesno("Update System", "The disk has been repaired. Do you want to update your system now?")
     
     if proceed:
+        update_choice = messagebox.askyesnocancel("Choose Updates", "Do you want to update Windows too? No for only Drivers, Cancel for none.")
         try:
-            # Variables para Lenovo Commercial Vantage
-            appid = "E046963F.LenovoSettingsforEnterprise_k1h2ywk1493x8!App"
-            command = f'shell:appsfolder\\{appid}'
-
-# Comando a trozos
-            subprocess.run([
-                "powershell",
-                "-Command",
-                f'Start-Process "{command}" -ArgumentList "lenovo-vantage3:system-updates?action=start"'
-            ], shell=True)
-
-            # Cerrar la ventana principal despues de llamar a lenovo
-            root.destroy()
+            if update_choice is None:  # Cancel
+                # Cerrar la ventana principal si el usuario cancela la actualización
+                root.destroy()
+            elif update_choice:  # Yes -> Update both
+                # Actualizar Windows
+                verificar_modulo_pswindowsupdate()
+                buscar_actualizaciones()
+                instalar_actualizaciones()
+                messagebox.showinfo("All Windows Update installed")
+                # Actualizar Lenovo
+                run_lenovo_update(root)
+            else:  # No -> Only Lenovo
+                # Actualizar Lenovo
+                run_lenovo_update(root)
         
         except Exception as e:
             messagebox.showerror("Error", f"Failed to start system update: {str(e)}")
     else:
         # Cerrar la ventana principal si el usuario cancela la actualización
         root.destroy()
+
+def run_lenovo_update(root):
+    try:
+        # Variables para Lenovo Commercial Vantage
+        appid = "E046963F.LenovoSettingsforEnterprise_k1h2ywk1493x8!App"
+        command = f'shell:appsfolder\\{appid}'
+
+        # Comando a trozos
+        subprocess.run([
+            "powershell",
+            "-Command",
+            f'Start-Process "{command}" -ArgumentList "lenovo-vantage3:system-updates?action=start"'
+        ], shell=True)
+
+        # Cerrar la ventana principal despues de llamar a lenovo
+        root.destroy()
+    
+    except Exception as e:
+        messagebox.showerror("Error", f"Failed to start Lenovo update: {str(e)}")
 
 def reparar_disco():
     root = tk.Tk()
